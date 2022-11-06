@@ -171,6 +171,12 @@ Here are the variables that compose the SimpleDraw class, they are public and ca
 
 ---
 
+#### SimpleDraw.resetAfterLoop : Bool
+Dictates whether drawing variables (like colors, weights, etc) are reset to their default state after each loop. Default: true.
+This variable can be changed directly.
+
+---
+
 #### SimpleDraw.canvas : PictureBox
 The PictureBox element in which the final generated frame will be displayed at. Initially given by the user with the ```start()``` method.
 
@@ -571,8 +577,24 @@ Int r: The radius of the circle.
 
 Example:
 ```
+void draw()
+{
+    s.noFill();
+    s.stroke(Color.Red);
+    s.strokeWeight(3);
 
+    s.circle(30, 30, 30);
+    s.stroke(Color.Black);
+    s.circle(30, 30, 25);
+    s.stroke(Color.Yellow);
+    s.circle(30, 30, 15);
+    s.stroke(Color.Blue);
+    s.circle(30, 30, 7);
+}
 ```
+
+![circle](https://user-images.githubusercontent.com/88753590/200190224-902b2b8b-241f-44f8-b891-ff1562c755a5.PNG)
+
 ---
 ### SimpleDraw.ellipse(int x, int y, int w, int h)
 Draws an ellipse onto the screen.
@@ -585,8 +607,22 @@ Int w,h: The width and height of the rectangle that contains the ellipse.
 
 Example:
 ```
+void draw()
+{
+    s.strokeWeight(3);
 
+    s.fill(Color.Silver);
+    s.stroke(Color.Blue);
+    s.ellipse(62, 40, 45, 70);
+
+    s.noFill();
+    s.stroke(Color.Red);
+    s.ellipse(50, 50, 70, 30);
+}
 ```
+
+![ellipse](https://user-images.githubusercontent.com/88753590/200190559-d751d4d4-f6c7-41b2-8119-d994e044e988.PNG)
+
 ---
 ### SimpleDraw.line(int x1, int y1, int x2, int y2)
 Draws a line between two points.
@@ -599,8 +635,19 @@ Int x2,y2: The coordinates of the second point.
 
 Example:
 ```
+void draw()
+{
+    s.strokeWeight(3);
 
+    s.line(0, 0, s.width, s.height);
+    s.stroke(Color.Blue);
+    s.line(0, s.height/2, s.width, s.height/2);
+    s.stroke(Color.Red);
+    s.line(200, 300, 400, 250);
+}
 ```
+![lines](https://user-images.githubusercontent.com/88753590/200190969-754cf660-f443-4afd-a040-a0d3a9b64336.PNG)
+
 ---
 ### SimpleDraw.rect(int x, int y, int w, int h)
 Draws a rectangle onto the screen.
@@ -613,8 +660,30 @@ Int w,h: The width and height of the rectangle.
 
 Example:
 ```
+void draw()
+{
+    s.strokeWeight(3);
 
+    int x = 50;
+    int y = 60;
+    int dx = 5;
+    int dy = 5;
+
+    s.noFill();
+
+    s.rect(x, y, 50, 90);
+
+    s.stroke(Color.Red);
+    s.rect(y, x, 90, 50);
+
+    s.stroke(Color.Blue);
+    s.rect(x+dx, y+dy, 50-dx*2, 90-dy*2);
+}
 ```
+
+![rect](https://user-images.githubusercontent.com/88753590/200190928-c1e02c29-c48d-42b1-8d88-c7f8e59c6d1a.PNG)
+
+
 ---
 ### SimpleDraw.square(int x, int y, int s)
 Draws a square onto the screen.
@@ -627,8 +696,25 @@ Int s: The size of the sides of the square.
 
 Example:
 ```
+void draw()
+{
+    s.noStroke();
 
+    s.fill(Color.Black);
+    for (int i = 0; i < s.width; i += 25)
+    {
+        for (int j = 0; j < s.height; j += 25)
+        {
+            if ((i+j)%2 == 0)
+            {
+                s.square(i, j, 25);
+            }
+        }
+    }
+}
 ```
+![square](https://user-images.githubusercontent.com/88753590/200191124-c2af008c-e575-429f-8aba-be3b253b3bf7.PNG)
+
 ---
 ### SimpleDraw.triangle(int x1, int y1, int x2, int y2, int x3, int y3)
 Draws a triangle onto the screen.
@@ -643,8 +729,19 @@ Int x3,y3: The coordinates of the third vertex of the triangle.
 
 Example:
 ```
+void draw()
+{
+    s.background(Color.Silver);
+    s.fill(Color.Gold);
 
+    s.triangle(40, 40, 120, 40, 80, 120);
+    s.triangle(120, 40, 200, 40, 160, 120);
+    s.triangle(80, 120, 160, 120, 120, 200);
+}
 ```
+
+![triangle](https://user-images.githubusercontent.com/88753590/200191477-0bd81153-71ec-4bad-9982-3a37595925ad.PNG)
+
 ---
 ### SimpleDraw.polygon(Point[] points)
 Draws any convex polygon onto the screen.
@@ -655,9 +752,18 @@ Point[] points: An array containing all of the vertices of the polygon.
 
 Example:
 ```
-
+void draw()
+{
+    s.background(Color.Silver);
+    s.fill(Color.Gold);
+    Point[] pts = { new Point(50,50), new Point(100, 50), new Point(120, 100), new Point(75, 135), new Point(30, 100) };
+    s.polygon(pts);
+}
 ```
+
+![polygon](https://user-images.githubusercontent.com/88753590/200191606-e1730252-b389-40d8-b1f9-5edcee397622.PNG)
+
 ---
 
-// Todo: Finish some examples
+
 
