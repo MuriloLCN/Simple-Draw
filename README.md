@@ -1,6 +1,6 @@
 # Simple-Draw
 
-  This library is aimed to provide a simplified experience for using the Graphic library in C# (.Net) to modify and update a picture box in a Windows Forms app.
+  This interface is aimed to provide a simplified experience for using the Graphic library in C# (.Net) to modify and update a picture box in a Windows Forms app.
   
   The general design of the library structure is heavily (if not all) inspired by the [P5.js](https://p5js.org/) library and the Processing library, and is intended to make simple graphical programs easy to do in the shape of a Windows Forms app using the C# language and all it offers, alongside all of the flexibility of the .NET environment.
   
@@ -152,109 +152,140 @@ void draw()
 ```
 ![gif](https://user-images.githubusercontent.com/88753590/200155629-56506076-f47e-4f27-8389-0178632b08f2.gif)
 
-(Note: This is a compressed GIF loop, the quality is far worse from the real sketch)
+(Note: This is a compressed GIF loop, the quality in the real sketch is far better)
 
 And just like that, we've got a ball that bounces around like a DVD screensaver (I wonder when it'll hit the corners...), you should try for yourself. 
 
-This example was just to give you an idea of how you can work with this library, and there is so much you can do with this, it's all up to you.
+This example was just to give you an idea of how you can work with this interface, and there is so much you can do with this, it's all up to you.
 
-## Documentation
+# Documentation
 Here are the components that make up the SimpleDraw class and how you can use them.
 
 ## Variables
 
-Here are the variables that compose the SimpleDraw class, they are public and can be retrieved and changed directly, although it is not recommended for most of them that you the latter, and instead call the appropriate method to do so (unless explicitly dictated), as there are behaviors that need to happen during those calls.
+Here are the variables that compose the SimpleDraw class, they are public and can be retrieved and changed directly, although it is not recommended for most of them that you do the latter, and instead call the appropriate method to do so (unless explicitly dictated), as there are behaviors that need to happen during those calls.
+
+---
 
 ## Simulation variables
+
+---
 
 #### SimpleDraw.canvas : PictureBox
 The PictureBox element in which the final generated frame will be displayed at. Initially given by the user with the ```start()``` method.
 
+---
 #### SimpleDraw.frameCount : Int
 The count of how many frames have passed since the start of the simulation.
 
+---
 #### SimpleDraw.deltaTime : Int 
 The time interval between frames (in ms). Changing this mid-run will not change the speed of the simulation.
 
+---
 #### SimpleDraw.currentFrame : Bitmap
 The current frame image being generated.
 
+---
 #### SimpleDraw.graphics : Graphics
 The current graphics object used to draw onto the currentFrame.
 
+---
 #### SimpleDraw.fillState : Bool
 Whether the shapes that are being drawn should or not be filled in. Default: true
 
+---
 #### SimpleDraw.strokeState : Bool 
 Whether the shapes that are being drawn should or not have their outlines (perimeters) drawn. Default: true
 
+---
 #### SimpleDraw.antiAlias : Bool
 Whether anti-aliasing is on or off. Default: false
 
+---
 #### SimpleDraw.width : Int
 The width of the canvas. Default: The same width of the PictureBox passed in.
 #### SimpleDraw.height : Int
 The height of the canvas. Default: The same height of the PictureBox passed in.
 
+---
 ## Drawing variables
-
+---
 #### SimpleDraw.dx : Int 
 The translation in the x axis for the origin. Default: 0
 #### SimpleDraw.dy : Int 
 The translation in the y axis for the origin. Default: 0
 
+---
 #### SimpleDraw.currentStrokeColor : Color
 The current color used for drawing points, lines and the edges of shapes. Default: Color.Black
 #### SimpleDraw.currentFillColor : Color
 The current color used for filling in shapes. Default: Color.Black
 
+---
+
 #### SimpleDraw.backgroundColor : Color 
 The current background color. Default: Color.White
 
+---
 #### SimpleDraw.textFont : Font
 The current font used for text. Default: Times New Roman, 12
 
+---
 #### SimpleDraw.BGbrush : SolidBrush
 The current brush used for the background. Same color as backgroundColor
 
+---
 #### SimpleDraw.fillBrush : SolidBrush
 The current brush used for filling shapes. Same color as currentFillColor
 
+---
 #### SimpleDraw.strokePen : Pen 
 The current pen used to draw points, lines and edges of shapes. Same color as currentStrokeColor
 
+---
 ## Temporary state variables
 
+---
 #### SimpleDraw.isTempState : Bool
 Whether or not the drawing is in temporary state (i.e, when push() is called). Default: false
 
+---
 #### SimpleDraw.tempStrokeColor : Color
 The current temporary stroke color. Default: currentStrokeColor
 
+---
 #### SimpleDraw.tempFillColor : Color
 The current temporary fill color. Default: currentFillColor
 
+---
 #### SimpleDraw.tempBGColor : Color
 The current temporary background color. Default: backgroundColor
 
+---
 #### SimpleDraw.tempBGbrush : SolidBrush
 The current temporary background brush. Default: BGbrush
 
+---
 #### SimpleDraw.tempFillBrush : SolidBrush
 The current temporary filling brush. Default: fillBrush
 
+---
 #### SimpleDraw.tempStrokePen : Pen
 The current temporary stroking pen. Default: strokePen
 
-### Methods
+---
+## Methods
 
 The methods used to control and draw stuff to the screen.
 
-### State methods
+---
+## State methods
 
 These methods don't directly draw onto the screen, but rather control aspects of the simulation.
 
-#### void changeFont(string name, float size)
+---
+### SimpleDraw.changeFont(string name, float size)
 Changes the font used in the canvas. 
 
 Parameters:
@@ -262,41 +293,136 @@ string name: The name of the font (e.g: "Time New Roman")
 
 float size: The size of the font (e.g: 15.0f)
 
-#### void translate(int x, int y)
+Example:
+```
+void draw()
+{
+    s.changeFont("Arial", 25);
+    s.text("Hello, ", 50, 50);
+    s.changeFont("Times New Roman", 38);
+    s.text("World!", 50, 100);
+}
+```
+
+![changefont](https://user-images.githubusercontent.com/88753590/200180481-7ba46dbd-f2b5-4b8a-a343-c3689c48dd91.PNG)
+
+---
+### SimpleDraw.translate(int x, int y)
 Changes the position of the origin.
 
 Parameters:
 
 int x; int y: The new x,y coordinates of the origin point.
 
-#### void noFill()
+Example:
+```
+void draw()
+{
+    s.translate(0, 0);
+    s.background(Color.White);
+    s.fill(Color.Gray);
+    s.square(50, 50, 50);
+
+    s.translate(-50, 50);
+    s.fill(Color.Gold);
+    s.square(50, 50, 50);
+}
+```
+
+![translate](https://user-images.githubusercontent.com/88753590/200180664-236ccddb-01bf-4bef-a36f-2b3cea8bce0b.PNG)
+
+
+---
+### SimpleDraw.noFill()
 Makes all shapes drawn after this call to not be filled in.
 
-#### void fill(Color c)
+### SimpleDraw.fill(Color c)
 Makes all shapes drawn after this call to be filled in with a given color.
 
 Parameters:
 
 Color c: The color to fill the subsequent shapes.
 
-#### void strokeWeight(int s)
+Example:
+```
+void draw()
+{
+    s.strokeWeight(2);
+    s.background(Color.White);
+    s.noFill();
+    s.stroke(Color.Green);
+    s.square(50, 50, 50);
+
+    s.fill(Color.Gold);
+    s.circle(100, 150, 25);
+}
+```
+
+![fill](https://user-images.githubusercontent.com/88753590/200180924-67dc4dec-41f6-4372-b8b3-6bc450c4db81.PNG)
+
+---
+### SimpleDraw.strokeWeight(int s)
 Changes how thick or thin the stroke lines are, smaller numbers means thinner outlines, bigger numbers mean thicker outlines.
 
 Parameters:
 
 Int s: The size (in px) of the stroking line.
 
-#### void noStroke()
+Example:
+```
+void draw()
+{
+    s.strokeWeight(1);
+    s.line(0, 20, s.width, 20);
+
+    s.strokeWeight(2);
+    s.line(0, 40, s.width, 40);
+
+    s.strokeWeight(4);
+    s.line(0, 60, s.width, 60);
+
+    s.strokeWeight(8);
+    s.line(0, 80, s.width, 80);
+}
+```
+
+![strokeweight](https://user-images.githubusercontent.com/88753590/200181101-81967879-15f3-4912-86b4-ee4bb0f83fea.PNG)
+
+
+---
+### SimpleDraw.noStroke()
 Makes all shapes drawn after this call to not have their outlines drawn.
 
-#### void stroke(Color c)
+### SimpleDraw.stroke(Color c)
 Makes all shapes drawn after this call to have their outlines drawn with a given color.
 
 Parameters:
 
 Color c: The color to draw the outlines of the subsequent shapes.
 
-#### void frameRate(int frames)
+Example:
+```
+void draw()
+{
+    s.strokeWeight(2);
+
+    s.fill(Color.Red);
+    s.noStroke();
+
+    s.square(20, 30, 60);
+
+    s.fill(Color.Silver);
+    s.stroke(Color.Blue);
+
+    s.triangle(200, 200, 300, 300, 350, 150);
+
+}
+```
+
+![strokenostroke](https://user-images.githubusercontent.com/88753590/200181365-bbd8184a-2839-4d8c-bb91-e6932493a39c.PNG)
+
+---
+### SimpleDraw.frameRate(int frames)
 Changes the framerate of the simulation. Must be called in ```setup()```.
 Note that this has a limit as the deltaTime between frames must be at least 1ms.
 
@@ -304,16 +430,43 @@ Parameters:
 
 int frames: The number of FPS to set the simulation to.
 
-#### void toggleAntiAlias()
+---
+### SimpleDraw.toggleAntiAlias()
 Toggles anti-aliasing on and off.
 
-#### void push()
+---
+### SimpleDraw.push()
 Toggles the temporary state on. All color changes made when temporary state is on can be undone by leaving this state.
 
-#### void pop()
+### SimpleDraw.pop()
 Toggles the temporary state off.
 
-#### void start(Action setup, Action draw, PictureBox img)
+Example:
+```
+void draw()
+{
+    s.strokeWeight(2);
+
+    s.fill(Color.Red);
+    s.stroke(Color.Blue);
+
+    s.square(50, 50, 50);
+    s.circle(100, 50, 25);
+
+    s.push();
+    s.fill(Color.Gold);
+    s.square(100, 100, 50);
+    s.pop();
+
+    s.circle(50, 100, 25);
+}
+```
+
+![pushpop](https://user-images.githubusercontent.com/88753590/200181536-7f694d7d-4737-4874-a551-53449d176d48.PNG)
+
+
+---
+### SimpleDraw.start(Action setup, Action draw, PictureBox img)
 Starts the simulation.
 
 Parameters:
@@ -324,18 +477,35 @@ Action draw: The draw() method written by the user.
 
 PictureBox img: The PictureBox element to which the drawing will occur.
 
-### Drawing methods
+---
+## Drawing methods
 
 These methods draw onto the canvas.
 
-#### void point(int x, int y)
+---
+### SimpleDraw.point(int x, int y)
 Draws a point at coordinates (x,y)
 
 Parameters:
 
 Int x, y: The x,y coordinates to draw the point to.
 
-#### void text(string s, int x, int y)
+Example:
+```
+void draw()
+{
+    s.strokeWeight(2);
+
+    s.point(50, 50);
+    s.point(60, 60);
+    s.point(80, 80);
+}
+```
+
+![point](https://user-images.githubusercontent.com/88753590/200181835-f8a0649e-16cd-4253-b9a4-2099c79be317.PNG)
+
+---
+### SimpleDraw.text(string s, int x, int y)
 Writes a string of text onto the screen.
 
 Parameters:
@@ -344,17 +514,53 @@ String s: The text to be written
 
 Int x,y: The coordinates of the top-left corner of the text.
 
-#### void clear()
+---
+### SimpleDraw.clear()
 Clears the entire canvas and just leaves it's background.
 
-#### void background(Color c)
+Example:
+```
+void draw()
+{
+    s.fill(Color.Silver);
+    s.stroke(Color.Blue);
+
+    s.square(50, 50, 50); // This should not appear if we call clear()
+
+    s.clear();
+
+    s.circle(100, 100, 25); // This should appear
+}
+```
+
+![clear](https://user-images.githubusercontent.com/88753590/200182146-059dac63-46cb-41a7-9df7-28cbf1804060.PNG)
+
+---
+### SimpleDraw.background(Color c)
 Sets a new background color and clears the canvas to it.
 
 Parameters:
 
 Color c: The new background color.
 
-#### void circle(int x, int y, int r)
+Example:
+```
+void draw()
+{
+    s.background(Color.Black);
+    s.noFill();
+    s.stroke(Color.Red);
+    s.strokeWeight(3);
+
+    s.circle(30, 30, 30);
+}
+```
+
+![bgactual](https://user-images.githubusercontent.com/88753590/200182316-f87b285d-f803-4b08-8cae-3c352de2122d.PNG)
+
+
+---
+### SimpleDraw.circle(int x, int y, int r)
 Draws a circle onto the screen.
 
 Parameters:
@@ -363,7 +569,12 @@ Int x,y: The coordinates of the top-left part of the rectangle that contains the
 
 Int r: The radius of the circle.
 
-#### void ellipse(int x, int y, int w, int h)
+Example:
+```
+
+```
+---
+### SimpleDraw.ellipse(int x, int y, int w, int h)
 Draws an ellipse onto the screen.
 
 Parameters:
@@ -372,7 +583,12 @@ Int x,y: The coordinates of the top-left part of the rectange that contains the 
 
 Int w,h: The width and height of the rectangle that contains the ellipse.
 
-#### void line(int x1, int y1, int x2, int y2)
+Example:
+```
+
+```
+---
+### SimpleDraw.line(int x1, int y1, int x2, int y2)
 Draws a line between two points.
 
 Parameters:
@@ -381,7 +597,12 @@ Int x1,y1: The coordinates of the first point.
 
 Int x2,y2: The coordinates of the second point.
 
-#### void rect(int x, int y, int w, int h)
+Example:
+```
+
+```
+---
+### SimpleDraw.rect(int x, int y, int w, int h)
 Draws a rectangle onto the screen.
 
 Parameters:
@@ -390,7 +611,12 @@ Int x, y: The coordinates of the top-left corner of the rectangle.
 
 Int w,h: The width and height of the rectangle.
 
-#### void square(int x, int y, int s)
+Example:
+```
+
+```
+---
+### SimpleDraw.square(int x, int y, int s)
 Draws a square onto the screen.
 
 Parameters:
@@ -399,7 +625,12 @@ Int x, y: The coordinates of the top-left corner of the square.
 
 Int s: The size of the sides of the square.
 
-#### void triangle(int x1, int y1, int x2, int y2, int x3, int y3)
+Example:
+```
+
+```
+---
+### SimpleDraw.triangle(int x1, int y1, int x2, int y2, int x3, int y3)
 Draws a triangle onto the screen.
 
 Parameters:
@@ -410,12 +641,23 @@ Int x2,y2: The coordinates of the second vertex of the triangle.
 
 Int x3,y3: The coordinates of the third vertex of the triangle.
 
-#### void polygon(Point[] points)
+Example:
+```
+
+```
+---
+### SimpleDraw.polygon(Point[] points)
 Draws any convex polygon onto the screen.
 
 Parameters:
 
 Point[] points: An array containing all of the vertices of the polygon.
 
-// Todo: Add examples here
+Example:
+```
+
+```
+---
+
+// Todo: Finish some examples
 
