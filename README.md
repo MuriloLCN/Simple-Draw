@@ -150,6 +150,9 @@ void draw()
     s.circle(ballPosition.X, ballPosition.Y, 24);
 }
 ```
+![gif](https://user-images.githubusercontent.com/88753590/200155629-56506076-f47e-4f27-8389-0178632b08f2.gif)
+
+(Note: This is a compressed GIF loop, the quality is far worse from the real sketch)
 
 And just like that, we've got a ball that bounces around like a DVD screensaver (I wonder when it'll hit the corners...), you should try for yourself. 
 
