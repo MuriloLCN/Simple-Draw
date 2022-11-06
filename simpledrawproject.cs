@@ -32,6 +32,14 @@ namespace SimpleDrawProject
         public int width;
         public int height;
 
+        private bool isPaused = false;
+        private bool quitted = false;
+
+        private int originalWidth;
+        private int originalHeight;
+
+        public double zoomFactor = 1;
+
         public bool resetAfterLoop = true;
 
         public Font textFont = new Font("Times New Roman", 12.0f);
@@ -97,6 +105,12 @@ namespace SimpleDrawProject
             tempBGbrush = new SolidBrush(Color.White);
             tempFillBrush = new SolidBrush(Color.Black);
             tempStrokePen = new Pen(new SolidBrush(Color.Black), 1);
+        }
+
+        public void zoom(double zoomFactor)
+        {
+            width = (int)Math.Floor(originalWidth * zoomFactor);
+            height = (int)Math.Floor(originalHeight * zoomFactor);
         }
 
         public void point(int x, int y)
@@ -393,10 +407,29 @@ namespace SimpleDrawProject
             isTempState = false;
         }
 
+        public void pause()
+        {
+            isPaused = true;
+        }
+
+        public void unpause()
+        {
+            isPaused = false;
+        }
+
+        public void quit()
+        {
+            quitted = true;
+        }
+
         private Action drawAct;
 
         private void TimerTick(object sender, EventArgs e)
         {
+            if (isPaused)
+            {
+                return;
+            }
             currentFrame = new Bitmap(width, height);
             graphics = Graphics.FromImage(currentFrame);
             
@@ -413,15 +446,22 @@ namespace SimpleDrawProject
  
             drawAct();
             canvas.Image = (Image)currentFrame;
+            
             GC.Collect();
             if (resetAfterLoop)
             {
                 resetVariables();
             }
+            if (quitted)
+            {
+                drawEvent.Stop();
+            }
         }
+
+        Timer drawEvent = new System.Windows.Forms.Timer();
         void protoDraw(Action draw)
         {
-            Timer drawEvent = new System.Windows.Forms.Timer();
+            
             drawAct = draw;
             drawEvent.Tick += new EventHandler(TimerTick);
             drawEvent.Interval = deltaTime;
@@ -430,6 +470,9 @@ namespace SimpleDrawProject
 
         void protoSetup(Action setup)
         {
+            originalHeight = height;
+            canvas.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            originalWidth = width;
             setup();
         }
 
