@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows.Forms;
 using System.Drawing;
 
@@ -32,11 +32,15 @@ namespace SimpleDrawProject
         public int width;
         public int height;
 
+        public bool resetAfterLoop = true;
+
         public Font textFont = new Font("Times New Roman", 12.0f);
 
         public SolidBrush BGbrush = new SolidBrush(Color.White);
         public SolidBrush fillBrush = new SolidBrush(Color.Black);
         public Pen strokePen = new Pen(new SolidBrush(Color.Black), 1);
+
+        public int currentStrokeWeight = 1;
 
         // Temporary drawing state for between Push() and Pop()
         public bool isTempState = false;
@@ -46,6 +50,8 @@ namespace SimpleDrawProject
         public SolidBrush tempBGbrush = new SolidBrush(Color.White);
         public SolidBrush tempFillBrush = new SolidBrush(Color.Black);
         public Pen tempStrokePen = new Pen(new SolidBrush(Color.Black), 1);
+
+        public int tempStrokeWeight = 1;
 
         private void getPenAndBrush(out Pen p, out SolidBrush b)
         {
@@ -62,6 +68,37 @@ namespace SimpleDrawProject
             }
         }
 
+        private void resetVariables()
+        {
+            // Resets all drawing variables to default state
+            dx = 0;
+            dy = 0;
+
+            currentStrokeColor = Color.Black;
+            currentFillColor = Color.Black;
+
+            backgroundColor = Color.White;
+
+            fillState = true;
+            strokeState = true;
+
+            textFont = new Font("Times New Roman", 12.0f);
+
+            BGbrush = new SolidBrush(Color.White);
+            fillBrush = new SolidBrush(Color.Black);
+            strokePen = new Pen(new SolidBrush(Color.Black), 1);
+
+            currentStrokeWeight = 1;
+
+            isTempState = false;
+            tempStrokeColor = Color.Black;
+            tempFillColor = Color.Black;
+            tempBGColor = Color.White;
+            tempBGbrush = new SolidBrush(Color.White);
+            tempFillBrush = new SolidBrush(Color.Black);
+            tempStrokePen = new Pen(new SolidBrush(Color.Black), 1);
+        }
+
         public void point(int x, int y)
         {
             // Draws a point at coordinates (x,y) with the current stroke color
@@ -74,7 +111,7 @@ namespace SimpleDrawProject
             {
                 st = tempStrokePen;
             }
-            graphics.DrawRectangle(st, x - dx, y - dy, 1, 1);
+            graphics.DrawEllipse(st, x - dx, y - dy, 1, 1);
         }
 
         public void text(string s, int x, int y)
@@ -160,10 +197,12 @@ namespace SimpleDrawProject
             if (!isTempState)
             {
                 strokePen = new Pen(currentStrokeColor, s);
+                currentStrokeWeight = s;
             }
             else
             {
                 tempStrokePen = new Pen(tempStrokeColor, s);
+                tempStrokeWeight = s;
             }
         }
 
@@ -175,12 +214,12 @@ namespace SimpleDrawProject
             if (!isTempState)
             {
                 currentStrokeColor = c;
-                strokePen = new Pen(new SolidBrush(c));
+                strokePen = new Pen(new SolidBrush(c), currentStrokeWeight);
             }
             else
             {
                 tempStrokeColor = c;
-                tempStrokePen = new Pen(new SolidBrush(c));
+                tempStrokePen = new Pen(new SolidBrush(c), tempStrokeWeight);
             }
         }
 
@@ -375,6 +414,10 @@ namespace SimpleDrawProject
             drawAct();
             canvas.Image = (Image)currentFrame;
             GC.Collect();
+            if (resetAfterLoop)
+            {
+                resetVariables();
+            }
         }
         void protoDraw(Action draw)
         {
