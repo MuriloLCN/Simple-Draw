@@ -483,6 +483,28 @@ Action draw: The draw() method written by the user.
 
 PictureBox img: The PictureBox element to which the drawing will occur.
 
+### SimpleDraw.pause()
+Pauses the simulation.
+
+### SimpleDraw.unpause()
+Unpauses the simulation. Needs to be called somewhere other than ```draw()```, as it will be halted.
+
+### SimpleDraw.quit()
+Quits the simulation.
+
+---
+### SimpleDraw.zoom(Int zoomFactor)
+Zooms in or out depending on the factor. Multiplies the width and height by it.
+Beware: Very zoomed out pictures can use a lot of memory.
+
+Examples:
+
+```s.zoom(2);```
+Makes the image zoomed out by a factor of 2x (2x for each side, 4x the area)
+
+````s.zoom(0.5);```
+Makes the image zoomed in by a factor of 2x (0.5x for each side, 0.25x the area)
+
 ---
 ## Drawing methods
 
@@ -764,6 +786,26 @@ void draw()
 ![polygon](https://user-images.githubusercontent.com/88753590/200191606-e1730252-b389-40d8-b1f9-5edcee397622.PNG)
 
 ---
+
+### SimpleDraw.image(Image img, int x, int y)
+### SimpleDraw.image(Image img, int x, int y, int w, int h)
+
+Draws an image onto the screen at the given position with a determined size. If no size is passed in, the image will have it's original size.
+Notice that using very high resolution images (expectedly) makes the program use more memory.
+
+Examples:
+```
+Image myImage = Image.FromFile("Image\\path\\goes\\here.png");
+void draw()
+{
+    s.background(Color.Silver);
+
+    s.image(myImage, 20, 20, 300, 350);
+}
+```
+
+![image](https://user-images.githubusercontent.com/88753590/200208717-adc548f4-4ec6-4225-b723-61786af20390.PNG)
+
 
 
 
