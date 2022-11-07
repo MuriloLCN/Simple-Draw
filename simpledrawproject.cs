@@ -382,6 +382,18 @@ namespace SimpleDrawProject
             }
         }
 
+        public void image(Image img, int x, int y)
+        {
+            // Draws an image to the screen at position x,y
+            graphics.DrawImage(img, new Point(x,y));
+        }
+        
+        public void image(Image img, int x, int y, int w, int h)
+        {
+            // Draws an image to the screen at position x,y with sizes w,h
+            graphics.DrawImage(img, new Rectangle(x, y, w, h));
+        }
+
         public void toggleAntiAlias()
         {
             // Toggles anti aliasing on or off
