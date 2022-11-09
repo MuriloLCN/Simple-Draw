@@ -5,9 +5,22 @@ using System.Drawing;
 namespace SimpleDrawProject
 {
     public class SimpleDraw
-    {
+    { 
+        public enum RECT_MODE {TOP_LEFT, CENTER};
+        public enum CIRCLE_MODE {TOP_LEFT, CENTER};
+
+        // Used to access the enums outside of this class
+        public RECT_MODE rTopLeft = RECT_MODE.TOP_LEFT;
+        public RECT_MODE rCenter = RECT_MODE.CENTER;
+
+        public CIRCLE_MODE cTopLeft = CIRCLE_MODE.TOP_LEFT;
+        public CIRCLE_MODE cCenter = CIRCLE_MODE.CENTER;
+
         // PictureBox element to be drawn on
         public PictureBox canvas;
+
+        public RECT_MODE currentRectMode = RECT_MODE.TOP_LEFT;
+        public CIRCLE_MODE currentCircleMode = CIRCLE_MODE.TOP_LEFT;
 
         public int frameCount = 0;
         public int deltaTime = 16;
@@ -58,8 +71,20 @@ namespace SimpleDrawProject
         public SolidBrush tempBGbrush = new SolidBrush(Color.White);
         public SolidBrush tempFillBrush = new SolidBrush(Color.Black);
         public Pen tempStrokePen = new Pen(new SolidBrush(Color.Black), 1);
+        public RECT_MODE tempRectMode;
+        public CIRCLE_MODE tempCircleMode;
 
         public int tempStrokeWeight = 1;
+
+        public void rectMode(RECT_MODE r)
+        {
+            currentRectMode = r;
+        }
+
+        public void circleMode(CIRCLE_MODE c)
+        {
+            currentCircleMode = c;
+        }
 
         private void getPenAndBrush(out Pen p, out SolidBrush b)
         {
@@ -76,9 +101,63 @@ namespace SimpleDrawProject
             }
         }
 
+        private void getCircleOffset(out int kx, out int ky, int w, int h)
+        {
+            // Gets extra offset for x,y coordinates if circle is in CENTER mode
+            if (isTempState)
+            {
+                if (tempCircleMode == CIRCLE_MODE.CENTER)
+                {
+                    kx = -w / 2;
+                    ky = -h / 2;
+                    return;
+                }
+            }
+            else
+            {
+                if (currentCircleMode == CIRCLE_MODE.CENTER)
+                {
+                    kx = -w / 2;
+                    ky = -h / 2;
+                    return;
+                }
+            }
+            kx = 0;
+            ky = 0;
+        }
+
+        private void getRectOffset(out int kx, out int ky, int w, int h)
+        {
+            // gets extra offset for rects if current rect mode is CENTER
+            if (isTempState)
+            {
+                if (tempRectMode == RECT_MODE.CENTER)
+                {
+                    kx = -w / 2;
+                    ky = -h / 2;
+                    return;
+                }
+            }
+            else
+            {
+                if (currentRectMode == RECT_MODE.CENTER)
+                {
+                    kx = -w / 2;
+                    ky = -h / 2;
+                    return;
+                }
+            }
+            kx = 0;
+            ky = 0;
+        }
+
         private void resetVariables()
         {
             // Resets all drawing variables to default state
+
+            currentCircleMode = CIRCLE_MODE.TOP_LEFT;
+            currentRectMode = RECT_MODE.TOP_LEFT;
+            
             dx = 0;
             dy = 0;
 
@@ -105,6 +184,9 @@ namespace SimpleDrawProject
             tempBGbrush = new SolidBrush(Color.White);
             tempFillBrush = new SolidBrush(Color.Black);
             tempStrokePen = new Pen(new SolidBrush(Color.Black), 1);
+            tempStrokeWeight = 1;
+            tempRectMode = RECT_MODE.TOP_LEFT;
+            tempCircleMode = CIRCLE_MODE.TOP_LEFT;
         }
 
         public void zoom(double zoomFactor)
@@ -131,7 +213,6 @@ namespace SimpleDrawProject
         public void text(string s, int x, int y)
         {
             // Writes a string of text at the coordinates (x,y) with the current fill color
-
             SolidBrush b;
             if (!isTempState)
             {
@@ -261,14 +342,17 @@ namespace SimpleDrawProject
             Pen p;
             SolidBrush sb;
             getPenAndBrush(out p, out sb);
+            int kx = 0;
+            int ky = 0;
+            getCircleOffset(out kx, out ky, 2 * r, 2 * r);
 
             if (fillState)
             {
-                graphics.FillEllipse(sb, x - dx, y - dy, 2 * r, 2 * r);
+                graphics.FillEllipse(sb, x - dx + kx, y - dy + ky, 2 * r, 2 * r);
             }
             if (strokeState)
             {
-                graphics.DrawEllipse(p, x - dx, y - dy, 2 * r, 2 * r);
+                graphics.DrawEllipse(p, x - dx + kx, y - dy + ky, 2 * r, 2 * r);
             }
         }
 
@@ -278,15 +362,19 @@ namespace SimpleDrawProject
             Pen p;
             SolidBrush sb;
 
+            int kx = 0;
+            int ky = 0;
+            getCircleOffset(out kx, out ky, w, h);
+
             getPenAndBrush(out p, out sb);
 
             if (fillState)
             {
-                graphics.FillEllipse(sb, x - dx, y - dy, w, h);
+                graphics.FillEllipse(sb, x - dx + kx, y - dy + ky, w, h);
             }
             if (strokeState)
             {
-                graphics.DrawEllipse(p, x - dx, y - dy, w, h);
+                graphics.DrawEllipse(p, x - dx + kx, y - dy + ky, w, h);
             }
         }
 
@@ -314,13 +402,17 @@ namespace SimpleDrawProject
             SolidBrush sb;
             getPenAndBrush(out p, out sb);
 
+            int kx = 0;
+            int ky = 0;
+            getRectOffset(out kx, out ky, w, h);
+
             if (fillState)
             {
-                graphics.FillRectangle(sb, x-dx, y-dy, w, h);
+                graphics.FillRectangle(sb, x-dx+kx, y-dy+ky, w, h);
             }
             if (strokeState)
             {
-                graphics.DrawRectangle(p, x-dx, y-dy, w, h);
+                graphics.DrawRectangle(p, x-dx+kx, y-dy+ky, w, h);
             }
         }
 
@@ -331,13 +423,17 @@ namespace SimpleDrawProject
             SolidBrush sb;
             getPenAndBrush(out p, out sb);
 
+            int kx = 0;
+            int ky = 0;
+            getRectOffset(out kx, out ky, s, s);
+
             if (fillState)
             {
-                graphics.FillRectangle(sb, x-dx, y-dy, s, s);
+                graphics.FillRectangle(sb, x-dx+kx, y-dy+ky, s, s);
             }
             if (strokeState)
             {
-                graphics.DrawRectangle(p, x-dx, y-dy, s, s);
+                graphics.DrawRectangle(p, x-dx+kx, y-dy+ky, s, s);
             }
         }
 
@@ -385,13 +481,22 @@ namespace SimpleDrawProject
         public void image(Image img, int x, int y)
         {
             // Draws an image to the screen at position x,y
-            graphics.DrawImage(img, new Point(x,y));
+            int kx = 0;
+            int ky = 0;
+            getRectOffset(out kx, out ky, img.Width, img.Height);
+            
+            graphics.DrawImage(img, new Point(x+kx,y+ky));
         }
         
         public void image(Image img, int x, int y, int w, int h)
         {
             // Draws an image to the screen at position x,y with sizes w,h
-            graphics.DrawImage(img, new Rectangle(x, y, w, h));
+
+            int kx = 0;
+            int ky = 0;
+            getRectOffset(out kx, out ky, w, h);
+
+            graphics.DrawImage(img, new Rectangle(x+kx, y+ky, w, h));
         }
 
         public void toggleAntiAlias()
@@ -411,6 +516,8 @@ namespace SimpleDrawProject
             tempFillColor = currentFillColor;
             tempStrokeColor = currentStrokeColor;
             tempStrokePen = strokePen;
+            tempCircleMode = currentCircleMode;
+            tempRectMode = currentRectMode;
         }
 
         public void pop()
@@ -432,6 +539,18 @@ namespace SimpleDrawProject
         public void quit()
         {
             quitted = true;
+        }
+
+        public Point mousePos(Form f)
+        {
+            // Gets mouse position in the screen
+
+            Point absolutePos = System.Windows.Forms.Cursor.Position;
+            Point relativeForm = f.PointToClient(absolutePos);
+            relativeForm.X -= canvas.Location.X;
+            relativeForm.Y -= canvas.Location.Y;
+            
+            return relativeForm;
         }
 
         private Action drawAct;
@@ -467,10 +586,12 @@ namespace SimpleDrawProject
             if (quitted)
             {
                 drawEvent.Stop();
+                GC.Collect();
             }
         }
 
         Timer drawEvent = new System.Windows.Forms.Timer();
+
         void protoDraw(Action draw)
         {
             
