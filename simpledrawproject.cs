@@ -549,6 +549,8 @@ namespace SimpleDrawProject
             Point relativeForm = f.PointToClient(absolutePos);
             relativeForm.X -= canvas.Location.X;
             relativeForm.Y -= canvas.Location.Y;
+            relativeForm.X += dx;
+            relativeForm.Y += dy;
             
             return relativeForm;
         }
