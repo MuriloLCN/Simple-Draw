@@ -250,6 +250,30 @@ The current brush used for filling shapes. Same color as currentFillColor
 The current pen used to draw points, lines and edges of shapes. Same color as currentStrokeColor
 
 ---
+#### SimpleDraw.currentRectMode
+The current mode used for drawing rectangles, squares and images. Can be either TOP_LEFT or CENTER.
+
+---
+#### SimpleDraw.currentCircleMode
+The current mode used for drawing circles and ellipses. Can be either TOP_LEFT or CENTER.
+
+---
+#### SimpleDraw.rTopLeft
+Public variable representing ```SimpleDraw.RECT_MODE.TOP_LEFT```. Used as parameter for rectMode() method.
+
+---
+#### SimpleDraw.rCenter
+Public variable representing ```SimpleDraw.RECT_MODE.CENTER```. Used as parameter for rectMode() method.
+
+---
+#### SimpleDraw.cTopLeft
+Public variable representing ```SimpleDraw.CIRCLE_MODE.TOP_LEFT```. Used as parameter for circleMode() method.
+
+---
+#### SimpleDraw.cCenter
+Public variable representing ```SimpleDraw.CIRCLE_MODE.CENTER```. Used as parameter for circleMode() method.
+
+---
 ## Temporary state variables
 
 ---
@@ -279,6 +303,14 @@ The current temporary filling brush. Default: fillBrush
 ---
 #### SimpleDraw.tempStrokePen : Pen
 The current temporary stroking pen. Default: strokePen
+
+---
+#### SimpleDraw.tempRectMode
+The current temporary mode for drawing rectangles. Default: currentRectMode
+
+---
+#### SimpleDraw.tempCircleMode
+The current temporary mode for drawing circles. Default: currentCircleMode
 
 ---
 ## Methods
@@ -502,8 +534,121 @@ Examples:
 ```s.zoom(2);```
 Makes the image zoomed out by a factor of 2x (2x for each side, 4x the area)
 
-````s.zoom(0.5);```
+```s.zoom(0.5);```
 Makes the image zoomed in by a factor of 2x (0.5x for each side, 0.25x the area)
+
+---
+### SimpleDraw.mousePos(Form f) -> Point()
+Gets the current mouse position (relative to the top left corner of the canvas).
+Returns a Point with the X,Y position of the cursor.
+
+Parameters:
+Form f : The current form to get relative mouse position from
+
+Returns:
+Point p : A point with the relative coordinates of the mouse relative to the canvas
+
+Example:
+```
+void draw()
+{
+    s.background(Color.Silver);
+
+    Point pos = s.mousePos(this); // Form where we're drawing this passed in
+
+    s.noFill();
+    if (pos.X >= 75 && pos.X <= 150)
+    {
+        if (pos.Y >= 75 && pos.Y <= 150)
+        {
+            s.fill(Color.Gold);
+        }
+    }
+
+    s.push();
+    s.strokeWeight(3);
+    s.point(pos.X, pos.Y);
+    s.pop();
+
+    s.square(75, 75, 75);
+    s.fill(Color.Green);
+    s.text(pos.X.ToString(), 10, 10);
+    s.fill(Color.Red);
+    s.text(pos.Y.ToString(), 10, 30);
+}
+```
+
+![mouseposgif](https://user-images.githubusercontent.com/88753590/200938260-1b20c3b1-adb7-4002-ad5d-b1b9425716f6.gif)
+
+
+---
+### SimpleDraw.rectMode(RECT_MODE r)
+Changes the current mode for drawing squares, rectangles and images.
+
+If ```r``` is ```TOP_LEFT``` (which is the default), the (X,Y) coordinates passed in for the ```rect()```,```square()``` and ```image()``` methods will represent the top left coordinate of the rectangle. ```TOP_LEFT``` can be passed in with ```SimpleDraw.rTopLeft```.
+
+On the other hand, if ```r``` is ```CENTER```, the (X,Y) coordinates passed in for the methods above will represent the position of the center of the rectangle and the resulting position will be calculated based on it. ```CENTER``` can be passed in with ```SimpleDraw.rCenter```.
+
+Example:
+```
+void draw()
+{
+    s.background(Color.Silver);
+    s.noFill();
+
+    s.stroke(Color.Red);
+    s.rect(50, 25, 100, 50); // Rectangle with RECT_MODE as TOP_LEFT
+
+    s.stroke(Color.Blue);
+    s.rectMode(s.rCenter);
+    s.rect(50, 25, 100, 50); // Same rectangle with RECT_MODE as CENTER
+
+    s.stroke(Color.Black);
+    s.strokeWeight(3);
+    s.point(50, 25); // Point at the (x,y) coordinates passed in for the rectangles above
+}
+```
+
+![rectmode](https://user-images.githubusercontent.com/88753590/200935303-f2766482-e3ed-4aa6-a3bd-9a073e4f88f4.PNG)
+
+---
+### SimpleDraw.circleMode(CIRCLE_MODE c)
+Changes the current mode for drawing circles and ellipses.
+
+If ```c``` is ```TOP_LEFT``` (which is the default), the (X,Y) coordinates passed in for the ```circle()``` and ```ellipse()``` methods will represent the top left coordinate of the rectangle which contains the ellipse. ```TOP_LEFT``` can be passed in with ```SimpleDraw.cTopLeft```.
+
+On the other hand, if ```c``` is ```CENTER```, the (X,Y) coordinates passed in for the methods above will represent the position of the center of the ellipse and the resulting position will be calculated based on it. ```CENTER``` can be passed in with ```SimpleDraw.cCenter```.
+
+```
+void draw()
+{
+    s.background(Color.Silver);
+    s.noFill();
+    s.strokeWeight(3);
+
+    // Three circles at the same starting position with different sizes with CIRCLE_MODE as TOP_LEFT
+    s.stroke(Color.Red);
+    s.circle(50, 50, 25);
+    s.stroke(Color.Green);
+    s.circle(50, 50, 18);
+    s.stroke(Color.Blue);
+    s.circle(50, 50, 8);
+
+    // Three circles at the same starting position with different sizes with CIRCLE_MODE as CENTER
+    s.circleMode(s.cCenter);
+    s.circle(150, 50, 25);
+    s.stroke(Color.Red);
+    s.circle(150, 50, 18);
+    s.stroke(Color.Green);
+    s.circle(150, 50, 8);
+
+    s.stroke(Color.Black);
+    s.point(150, 50);
+    s.point(50, 50);
+}
+```
+
+![circlemode](https://user-images.githubusercontent.com/88753590/200936464-4b944ae9-c36a-4209-9954-31ef12691092.PNG)
 
 ---
 ## Drawing methods
@@ -593,7 +738,7 @@ Draws a circle onto the screen.
 
 Parameters:
 
-Int x,y: The coordinates of the top-left part of the rectangle that contains the circle.
+Int x,y: The coordinates of the top-left part of the rectangle that contains the circle if CIRCLE_MODE is TOP_LEFT, or the center of the circle if CIRCLE_MODE is CENTER.
 
 Int r: The radius of the circle.
 
@@ -623,7 +768,7 @@ Draws an ellipse onto the screen.
 
 Parameters:
 
-Int x,y: The coordinates of the top-left part of the rectange that contains the ellipse.
+Int x,y: The coordinates of the top-left part of the rectange that contains the ellipse if CIRCLE_MODE is TOP_LEFT, or the center of the ellipse if CIRCLE_MODE is CENTER.
 
 Int w,h: The width and height of the rectangle that contains the ellipse.
 
@@ -676,7 +821,7 @@ Draws a rectangle onto the screen.
 
 Parameters:
 
-Int x, y: The coordinates of the top-left corner of the rectangle.
+Int x, y: The coordinates of the top-left corner of the rectangle if RECT_MODE is TOP_LEFT, or the center of the rectangle if RECT_MODE is CENTER.
 
 Int w,h: The width and height of the rectangle.
 
@@ -712,7 +857,7 @@ Draws a square onto the screen.
 
 Parameters:
 
-Int x, y: The coordinates of the top-left corner of the square.
+Int x, y: The coordinates of the top-left corner of the square if RECT_MODE is TOP_LEFT, or the center of the square if RECT_MODE is CENTER.
 
 Int s: The size of the sides of the square.
 
@@ -792,6 +937,12 @@ void draw()
 
 Draws an image onto the screen at the given position with a determined size. If no size is passed in, the image will have it's original size.
 Notice that using very high resolution images (expectedly) makes the program use more memory.
+
+Parameters:
+
+Int x, y : The coordinates of the top left corner of the image if RECT_MODE is TOP_LEFT, or the center of the image if RECT_MODE is CENTER
+
+(Optional) Int w, h: The width and height to contain the image in a well defined space. If not passed in, the original image dimensions will be used.
 
 Examples:
 ```
