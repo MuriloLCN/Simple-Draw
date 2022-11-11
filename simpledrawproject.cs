@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Drawing;
 
@@ -35,7 +38,7 @@ namespace SimpleDrawProject
         public Color currentStrokeColor = Color.Black;
         public Color currentFillColor = Color.Black;
 
-        public Color backgroundColor = Color.White;
+        public Color? backgroundColor = Color.White;
 
         public bool fillState = true;
         public bool strokeState = true;
@@ -57,7 +60,6 @@ namespace SimpleDrawProject
 
         public Font textFont = new Font("Times New Roman", 12.0f);
 
-        public SolidBrush BGbrush = new SolidBrush(Color.White);
         public SolidBrush fillBrush = new SolidBrush(Color.Black);
         public Pen strokePen = new Pen(new SolidBrush(Color.Black), 1);
 
@@ -67,8 +69,7 @@ namespace SimpleDrawProject
         public bool isTempState = false;
         public Color tempStrokeColor = Color.Black;
         public Color tempFillColor = Color.Black;
-        public Color tempBGColor = Color.White;
-        public SolidBrush tempBGbrush = new SolidBrush(Color.White);
+        public Color? tempBGColor = Color.White;
         public SolidBrush tempFillBrush = new SolidBrush(Color.Black);
         public Pen tempStrokePen = new Pen(new SolidBrush(Color.Black), 1);
         public RECT_MODE tempRectMode;
@@ -171,7 +172,6 @@ namespace SimpleDrawProject
 
             textFont = new Font("Times New Roman", 12.0f);
 
-            BGbrush = new SolidBrush(Color.White);
             fillBrush = new SolidBrush(Color.Black);
             strokePen = new Pen(new SolidBrush(Color.Black), 1);
 
@@ -181,7 +181,6 @@ namespace SimpleDrawProject
             tempStrokeColor = Color.Black;
             tempFillColor = Color.Black;
             tempBGColor = Color.White;
-            tempBGbrush = new SolidBrush(Color.White);
             tempFillBrush = new SolidBrush(Color.Black);
             tempStrokePen = new Pen(new SolidBrush(Color.Black), 1);
             tempStrokeWeight = 1;
@@ -189,10 +188,12 @@ namespace SimpleDrawProject
             tempCircleMode = CIRCLE_MODE.TOP_LEFT;
         }
 
-        public void zoom(double zoomFactor)
+        public void zoom(double zoomFactorCurrent)
         {
-            width = (int)Math.Floor(originalWidth * zoomFactor);
-            height = (int)Math.Floor(originalHeight * zoomFactor);
+            width = (int)Math.Floor(originalWidth * zoomFactorCurrent);
+            height = (int)Math.Floor(originalHeight * zoomFactorCurrent);
+
+            zoomFactor = zoomFactorCurrent;
         }
 
         public void point(int x, int y)
@@ -228,24 +229,44 @@ namespace SimpleDrawProject
         public void clear()
         {
             // Clears the canvas to just the background color
-            graphics.Clear(backgroundColor);
-        }
-
-        public void background(Color c)
-        {
-            // Changes the background color and draws it (i.e, clears the screen)
-            if (!isTempState)
+            Color? current;
+            if (isTempState)
             {
-                backgroundColor = c;
-                BGbrush = new SolidBrush(c);
-                
+                current = tempBGColor;
             }
             else
             {
-                tempBGColor = c;
-                tempBGbrush = new SolidBrush(c);
+                current = backgroundColor;
             }
+
+            if (current != null)
+            {
+                graphics.Clear((Color)current);
+            }
+            else
+            {
+                currentFrame.Dispose();
+                graphics.Dispose();
+                currentFrame = new Bitmap(width, height);
+                graphics = Graphics.FromImage(currentFrame);
+                GC.Collect();
+            }
+        }
+
+        public void background(Color? c)
+        {
+            // Changes the background color and draws it (i.e, clears the screen)
+            if (isTempState)
+            {
+                tempBGColor = c;
+            }
+            else
+            {
+                backgroundColor = c;
+            }
+            
             clear();
+            GC.Collect();
         }
 
         public void fill(Color c)
@@ -510,7 +531,6 @@ namespace SimpleDrawProject
             // Sets the temporary state to true
             // All changes to colors done while temp state is on will be reverted back upon leaving
             isTempState = true;
-            tempBGbrush = BGbrush;
             tempBGColor = backgroundColor;
             tempFillBrush = fillBrush;
             tempFillColor = currentFillColor;
@@ -551,7 +571,9 @@ namespace SimpleDrawProject
             relativeForm.Y -= canvas.Location.Y;
             relativeForm.X += dx;
             relativeForm.Y += dy;
-            
+            relativeForm.X = (int)(relativeForm.X * zoomFactor);
+            relativeForm.Y = (int)(relativeForm.Y * zoomFactor);
+
             return relativeForm;
         }
 
