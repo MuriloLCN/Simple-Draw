@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Drawing;
 
@@ -9,21 +6,17 @@ namespace SimpleDrawProject
 {
     public class SimpleDraw
     { 
-        public enum RECT_MODE {TOP_LEFT, CENTER};
-        public enum CIRCLE_MODE {TOP_LEFT, CENTER};
+        public enum DRAW_MODE {TOP_LEFT, CENTER};
 
-        // Used to access the enums outside of this class
-        public RECT_MODE rTopLeft = RECT_MODE.TOP_LEFT;
-        public RECT_MODE rCenter = RECT_MODE.CENTER;
-
-        public CIRCLE_MODE cTopLeft = CIRCLE_MODE.TOP_LEFT;
-        public CIRCLE_MODE cCenter = CIRCLE_MODE.CENTER;
+        // Used to access the enum from outside of this class
+        public DRAW_MODE mode_center = DRAW_MODE.CENTER;
+        public DRAW_MODE mode_top_left = DRAW_MODE.TOP_LEFT;
 
         // PictureBox element to be drawn on
         public PictureBox canvas;
 
-        public RECT_MODE currentRectMode = RECT_MODE.TOP_LEFT;
-        public CIRCLE_MODE currentCircleMode = CIRCLE_MODE.TOP_LEFT;
+        public DRAW_MODE currentRectMode = DRAW_MODE.TOP_LEFT;
+        public DRAW_MODE currentCircleMode = DRAW_MODE.CENTER;
 
         public int frameCount = 0;
         public int deltaTime = 16;
@@ -72,17 +65,18 @@ namespace SimpleDrawProject
         public Color? tempBGColor = Color.White;
         public SolidBrush tempFillBrush = new SolidBrush(Color.Black);
         public Pen tempStrokePen = new Pen(new SolidBrush(Color.Black), 1);
-        public RECT_MODE tempRectMode;
-        public CIRCLE_MODE tempCircleMode;
+        public DRAW_MODE tempRectMode;
+        public DRAW_MODE tempCircleMode;
+        public Font tempTextFont;
 
         public int tempStrokeWeight = 1;
 
-        public void rectMode(RECT_MODE r)
+        public void rectMode(DRAW_MODE r)
         {
             currentRectMode = r;
         }
 
-        public void circleMode(CIRCLE_MODE c)
+        public void circleMode(DRAW_MODE c)
         {
             currentCircleMode = c;
         }
@@ -107,7 +101,7 @@ namespace SimpleDrawProject
             // Gets extra offset for x,y coordinates if circle is in CENTER mode
             if (isTempState)
             {
-                if (tempCircleMode == CIRCLE_MODE.CENTER)
+                if (tempCircleMode == DRAW_MODE.CENTER)
                 {
                     kx = -w / 2;
                     ky = -h / 2;
@@ -116,7 +110,7 @@ namespace SimpleDrawProject
             }
             else
             {
-                if (currentCircleMode == CIRCLE_MODE.CENTER)
+                if (currentCircleMode == DRAW_MODE.CENTER)
                 {
                     kx = -w / 2;
                     ky = -h / 2;
@@ -132,7 +126,7 @@ namespace SimpleDrawProject
             // gets extra offset for rects if current rect mode is CENTER
             if (isTempState)
             {
-                if (tempRectMode == RECT_MODE.CENTER)
+                if (tempRectMode == DRAW_MODE.CENTER)
                 {
                     kx = -w / 2;
                     ky = -h / 2;
@@ -141,7 +135,7 @@ namespace SimpleDrawProject
             }
             else
             {
-                if (currentRectMode == RECT_MODE.CENTER)
+                if (currentRectMode == DRAW_MODE.CENTER)
                 {
                     kx = -w / 2;
                     ky = -h / 2;
@@ -156,8 +150,8 @@ namespace SimpleDrawProject
         {
             // Resets all drawing variables to default state
 
-            currentCircleMode = CIRCLE_MODE.TOP_LEFT;
-            currentRectMode = RECT_MODE.TOP_LEFT;
+            currentCircleMode = DRAW_MODE.CENTER;
+            currentRectMode = DRAW_MODE.TOP_LEFT;
             
             dx = 0;
             dy = 0;
@@ -184,8 +178,9 @@ namespace SimpleDrawProject
             tempFillBrush = new SolidBrush(Color.Black);
             tempStrokePen = new Pen(new SolidBrush(Color.Black), 1);
             tempStrokeWeight = 1;
-            tempRectMode = RECT_MODE.TOP_LEFT;
-            tempCircleMode = CIRCLE_MODE.TOP_LEFT;
+            tempRectMode = DRAW_MODE.TOP_LEFT;
+            tempCircleMode = DRAW_MODE.CENTER;
+            tempTextFont = textFont;
         }
 
         public void zoom(double zoomFactorCurrent)
@@ -214,6 +209,24 @@ namespace SimpleDrawProject
         public void text(string s, int x, int y)
         {
             // Writes a string of text at the coordinates (x,y) with the current fill color
+
+            Font usedFont;
+
+            if (isTempState)
+            {
+                usedFont = tempTextFont;
+            }
+            else
+            {
+                usedFont = textFont;
+            }
+
+            int kx = 0;
+            int ky = 0;
+            SizeF stringSize = graphics.MeasureString(s, usedFont);
+
+            getRectOffset(out kx, out ky, (int)stringSize.Width, (int)stringSize.Height);
+
             SolidBrush b;
             if (!isTempState)
             {
@@ -223,7 +236,7 @@ namespace SimpleDrawProject
                 b = tempFillBrush;  
             }
 
-            graphics.DrawString(s, textFont, b, new Point(x - dx, y - dy));
+            graphics.DrawString(s, textFont, b, new Point(x - dx + kx, y - dy + ky));
         }
 
         public void clear()
@@ -289,6 +302,11 @@ namespace SimpleDrawProject
         public void changeFont(string name, float size)
         {
             // Changes the font used for text
+            if (isTempState)
+            {
+                tempTextFont = new Font(name, size);
+                return;
+            }
             textFont = new Font(name, size);
         }
 
@@ -506,7 +524,7 @@ namespace SimpleDrawProject
             int ky = 0;
             getRectOffset(out kx, out ky, img.Width, img.Height);
             
-            graphics.DrawImage(img, new Point(x+kx,y+ky));
+            graphics.DrawImage(img, new Point(x+kx-dx,y+ky-dy));
         }
         
         public void image(Image img, int x, int y, int w, int h)
@@ -517,7 +535,7 @@ namespace SimpleDrawProject
             int ky = 0;
             getRectOffset(out kx, out ky, w, h);
 
-            graphics.DrawImage(img, new Rectangle(x+kx, y+ky, w, h));
+            graphics.DrawImage(img, new Rectangle(x+kx-dx, y+ky-dy, w, h));
         }
 
         public void toggleAntiAlias()
@@ -538,6 +556,7 @@ namespace SimpleDrawProject
             tempStrokePen = strokePen;
             tempCircleMode = currentCircleMode;
             tempRectMode = currentRectMode;
+            tempTextFont = textFont;
         }
 
         public void pop()
