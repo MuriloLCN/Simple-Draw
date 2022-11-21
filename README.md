@@ -6,7 +6,7 @@
   
  ## Installation
  
-  In order to use this library, you can either download the ```simpledrawproject.cs``` file and include it in your code or, alternatively, you can copy the ```SimpleDraw``` class anywhere into your app's namespace to use it.
+  In order to use this interface, you can either download the ```simpledrawproject.cs``` file and include it in your code or, alternatively, you can copy the ```SimpleDraw``` class anywhere into your app's namespace to use it.
   
  ## Setting up
  
@@ -83,6 +83,7 @@ void setup()
 void draw()
 {
     s.background(Color.Beige);
+    s.circleMode(s.mode_top_left);
     s.circle(s.width / 2, s.height / 2, 24);
 }
 ```
@@ -104,6 +105,7 @@ Point ballPosition = new Point(50,50);
 void draw()
 {
     s.background(Color.Beige);
+    s.circleMode(s.mode_top_left);
     s.fill(Color.Red);
     s.stroke(Color.Blue);
     ballPosition.X += velocity;
@@ -132,6 +134,7 @@ int height;
 void draw()
 {
     s.background(Color.Beige);
+    s.circleMode(s.mode_top_left);
     s.fill(Color.Red);
     s.stroke(Color.Blue);
 
@@ -161,162 +164,6 @@ This example was just to give you an idea of how you can work with this interfac
 # Documentation
 Here are the components that make up the SimpleDraw class and how you can use them.
 
-## Variables
-
-Here are the variables that compose the SimpleDraw class, they are public and can be retrieved and changed directly, although it is not recommended for most of them that you do the latter, and instead call the appropriate method to do so (unless explicitly dictated), as there are behaviors that need to happen during those calls.
-
----
-
-## Simulation variables
-
----
-
-#### SimpleDraw.resetAfterLoop : Bool
-Dictates whether drawing variables (like colors, weights, etc) are reset to their default state after each loop. Default: true.
-This variable can be changed directly.
-
----
-
-#### SimpleDraw.canvas : PictureBox
-The PictureBox element in which the final generated frame will be displayed at. Initially given by the user with the ```start()``` method.
-
----
-#### SimpleDraw.frameCount : Int
-The count of how many frames have passed since the start of the simulation.
-
----
-#### SimpleDraw.deltaTime : Int 
-The time interval between frames (in ms). Changing this mid-run will not change the speed of the simulation.
-
----
-#### SimpleDraw.currentFrame : Bitmap
-The current frame image being generated.
-
----
-#### SimpleDraw.graphics : Graphics
-The current graphics object used to draw onto the currentFrame.
-
----
-#### SimpleDraw.fillState : Bool
-Whether the shapes that are being drawn should or not be filled in. Default: true
-
----
-#### SimpleDraw.strokeState : Bool 
-Whether the shapes that are being drawn should or not have their outlines (perimeters) drawn. Default: true
-
----
-#### SimpleDraw.antiAlias : Bool
-Whether anti-aliasing is on or off. Default: false
-
----
-#### SimpleDraw.width : Int
-The width of the canvas. Default: The same width of the PictureBox passed in.
-#### SimpleDraw.height : Int
-The height of the canvas. Default: The same height of the PictureBox passed in.
-
----
-## Drawing variables
----
-#### SimpleDraw.dx : Int 
-The translation in the x axis for the origin. Default: 0
-#### SimpleDraw.dy : Int 
-The translation in the y axis for the origin. Default: 0
-
----
-#### SimpleDraw.currentStrokeColor : Color
-The current color used for drawing points, lines and the edges of shapes. Default: Color.Black
-#### SimpleDraw.currentFillColor : Color
-The current color used for filling in shapes. Default: Color.Black
-
----
-
-#### SimpleDraw.backgroundColor : Color 
-The current background color. Default: Color.White
-
----
-#### SimpleDraw.textFont : Font
-The current font used for text. Default: Times New Roman, 12
-
----
-#### SimpleDraw.BGbrush : SolidBrush
-The current brush used for the background. Same color as backgroundColor
-
----
-#### SimpleDraw.fillBrush : SolidBrush
-The current brush used for filling shapes. Same color as currentFillColor
-
----
-#### SimpleDraw.strokePen : Pen 
-The current pen used to draw points, lines and edges of shapes. Same color as currentStrokeColor
-
----
-#### SimpleDraw.currentRectMode
-The current mode used for drawing rectangles, squares and images. Can be either TOP_LEFT or CENTER.
-
----
-#### SimpleDraw.currentCircleMode
-The current mode used for drawing circles and ellipses. Can be either TOP_LEFT or CENTER.
-
----
-#### SimpleDraw.rTopLeft
-Public variable representing ```SimpleDraw.RECT_MODE.TOP_LEFT```. Used as parameter for rectMode() method.
-
----
-#### SimpleDraw.rCenter
-Public variable representing ```SimpleDraw.RECT_MODE.CENTER```. Used as parameter for rectMode() method.
-
----
-#### SimpleDraw.cTopLeft
-Public variable representing ```SimpleDraw.CIRCLE_MODE.TOP_LEFT```. Used as parameter for circleMode() method.
-
----
-#### SimpleDraw.cCenter
-Public variable representing ```SimpleDraw.CIRCLE_MODE.CENTER```. Used as parameter for circleMode() method.
-
----
-## Temporary state variables
-
----
-#### SimpleDraw.isTempState : Bool
-Whether or not the drawing is in temporary state (i.e, when push() is called). Default: false
-
----
-#### SimpleDraw.tempStrokeColor : Color
-The current temporary stroke color. Default: currentStrokeColor
-
----
-#### SimpleDraw.tempFillColor : Color
-The current temporary fill color. Default: currentFillColor
-
----
-#### SimpleDraw.tempBGColor : Color
-The current temporary background color. Default: backgroundColor
-
----
-#### SimpleDraw.tempBGbrush : SolidBrush
-The current temporary background brush. Default: BGbrush
-
----
-#### SimpleDraw.tempFillBrush : SolidBrush
-The current temporary filling brush. Default: fillBrush
-
----
-#### SimpleDraw.tempStrokePen : Pen
-The current temporary stroking pen. Default: strokePen
-
----
-#### SimpleDraw.tempRectMode
-The current temporary mode for drawing rectangles. Default: currentRectMode
-
----
-#### SimpleDraw.tempCircleMode
-The current temporary mode for drawing circles. Default: currentCircleMode
-
----
-## Methods
-
-The methods used to control and draw stuff to the screen.
-
 ---
 ## State methods
 
@@ -324,7 +171,7 @@ These methods don't directly draw onto the screen, but rather control aspects of
 
 ---
 ### SimpleDraw.changeFont(string name, float size)
-Changes the font used in the canvas. 
+Changes the font used in the canvas. If temp state is on, it will change the temporary font only.
 
 Parameters:
 string name: The name of the font (e.g: "Time New Roman")
@@ -470,7 +317,7 @@ int frames: The number of FPS to set the simulation to.
 
 ---
 ### SimpleDraw.toggleAntiAlias()
-Toggles anti-aliasing on and off.
+Toggles anti-aliasing on and off. It is off by default.
 
 ---
 ### SimpleDraw.push()
@@ -582,12 +429,12 @@ void draw()
 
 
 ---
-### SimpleDraw.rectMode(RECT_MODE r)
+### SimpleDraw.rectMode(DRAW_MODE r)
 Changes the current mode for drawing squares, rectangles and images.
 
-If ```r``` is ```TOP_LEFT``` (which is the default), the (X,Y) coordinates passed in for the ```rect()```,```square()``` and ```image()``` methods will represent the top left coordinate of the rectangle. ```TOP_LEFT``` can be passed in with ```SimpleDraw.rTopLeft```.
+If ```r``` is ```TOP_LEFT``` (which is the default), the (X,Y) coordinates passed in for the ```rect()```,```square()``` and ```image()``` methods will represent the top left coordinate of the rectangle. ```TOP_LEFT``` can be passed in with ```SimpleDraw.mode_top_left```.
 
-On the other hand, if ```r``` is ```CENTER```, the (X,Y) coordinates passed in for the methods above will represent the position of the center of the rectangle and the resulting position will be calculated based on it. ```CENTER``` can be passed in with ```SimpleDraw.rCenter```.
+On the other hand, if ```r``` is ```CENTER```, the (X,Y) coordinates passed in for the methods above will represent the position of the center of the rectangle and the resulting position will be calculated based on it. ```CENTER``` can be passed in with ```SimpleDraw.mode_center```.
 
 Example:
 ```
@@ -600,7 +447,7 @@ void draw()
     s.rect(50, 25, 100, 50); // Rectangle with RECT_MODE as TOP_LEFT
 
     s.stroke(Color.Blue);
-    s.rectMode(s.rCenter);
+    s.rectMode(s.mode_center);
     s.rect(50, 25, 100, 50); // Same rectangle with RECT_MODE as CENTER
 
     s.stroke(Color.Black);
@@ -612,12 +459,12 @@ void draw()
 ![rectmode](https://user-images.githubusercontent.com/88753590/200935303-f2766482-e3ed-4aa6-a3bd-9a073e4f88f4.PNG)
 
 ---
-### SimpleDraw.circleMode(CIRCLE_MODE c)
+### SimpleDraw.circleMode(DRAW_MODE c)
 Changes the current mode for drawing circles and ellipses.
 
-If ```c``` is ```TOP_LEFT``` (which is the default), the (X,Y) coordinates passed in for the ```circle()``` and ```ellipse()``` methods will represent the top left coordinate of the rectangle which contains the ellipse. ```TOP_LEFT``` can be passed in with ```SimpleDraw.cTopLeft```.
+If ```c``` is ```TOP_LEFT```, the (X,Y) coordinates passed in for the ```circle()``` and ```ellipse()``` methods will represent the top left coordinate of the rectangle which contains the ellipse. ```TOP_LEFT``` can be passed in with ```SimpleDraw.mode_top_left```.
 
-On the other hand, if ```c``` is ```CENTER```, the (X,Y) coordinates passed in for the methods above will represent the position of the center of the ellipse and the resulting position will be calculated based on it. ```CENTER``` can be passed in with ```SimpleDraw.cCenter```.
+On the other hand, if ```c``` is ```CENTER``` (which is the default), the (X,Y) coordinates passed in for the methods above will represent the position of the center of the ellipse and the resulting position will be calculated based on it. ```CENTER``` can be passed in with ```SimpleDraw.mode_center```.
 
 ```
 void draw()
@@ -635,7 +482,7 @@ void draw()
     s.circle(50, 50, 8);
 
     // Three circles at the same starting position with different sizes with CIRCLE_MODE as CENTER
-    s.circleMode(s.cCenter);
+    s.circleMode(s.mode_center);
     s.circle(150, 50, 25);
     s.stroke(Color.Red);
     s.circle(150, 50, 18);
@@ -685,7 +532,7 @@ Parameters:
 
 String s: The text to be written
 
-Int x,y: The coordinates of the top-left corner of the text.
+Int x,y: The coordinates of the top-left corner of the text if RECT_MODE is TOP_LEFT or the middle of the text is RECT_MODE is CENTER.
 
 ---
 ### SimpleDraw.clear()
