@@ -474,6 +474,7 @@ void draw()
     s.strokeWeight(3);
 
     // Three circles at the same starting position with different sizes with CIRCLE_MODE as TOP_LEFT
+    s.circleMode(s.mode_top_left);
     s.stroke(Color.Red);
     s.circle(50, 50, 25);
     s.stroke(Color.Green);
