@@ -174,6 +174,7 @@ These methods don't directly draw onto the screen, but rather control aspects of
 Changes the font used in the canvas. If temp state is on, it will change the temporary font only.
 
 Parameters:
+
 string name: The name of the font (e.g: "Time New Roman")
 
 float size: The size of the font (e.g: 15.0f)
@@ -390,9 +391,11 @@ Gets the current mouse position (relative to the top left corner of the canvas).
 Returns a Point with the X,Y position of the cursor.
 
 Parameters:
+
 Form f : The current form to get relative mouse position from
 
 Returns:
+
 Point p : A point with the relative coordinates of the mouse relative to the canvas
 
 Example:
@@ -557,12 +560,12 @@ void draw()
 ![clear](https://user-images.githubusercontent.com/88753590/200182146-059dac63-46cb-41a7-9df7-28cbf1804060.PNG)
 
 ---
-### SimpleDraw.background(Color c)
-Sets a new background color and clears the canvas to it.
+### SimpleDraw.background(Color? c)
+Sets a new background color and clears the canvas to it. If color is null the background will be transparent.
 
 Parameters:
 
-Color c: The new background color.
+Color? c: The new background color.
 
 Example:
 ```
@@ -597,7 +600,8 @@ void draw()
     s.noFill();
     s.stroke(Color.Red);
     s.strokeWeight(3);
-
+    
+    s.circleMode(s.mode_top_left);
     s.circle(30, 30, 30);
     s.stroke(Color.Black);
     s.circle(30, 30, 25);
@@ -625,6 +629,7 @@ Example:
 void draw()
 {
     s.strokeWeight(3);
+    s.circleMode(s.mode_top_left);
 
     s.fill(Color.Silver);
     s.stroke(Color.Blue);
