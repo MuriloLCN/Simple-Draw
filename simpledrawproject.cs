@@ -1,12 +1,12 @@
 using System;
-using System.Windows.Forms;
 using System.Drawing;
+using System.Windows.Forms;
 
 namespace SimpleDrawProject
 {
     public class SimpleDraw
-    { 
-        public enum DRAW_MODE {TOP_LEFT, CENTER};
+    {
+        public enum DRAW_MODE { TOP_LEFT, CENTER };
 
         // Used to access the enum from outside of this class
         public DRAW_MODE mode_center = DRAW_MODE.CENTER;
@@ -21,9 +21,8 @@ namespace SimpleDrawProject
         public int frameCount = 0;
         public int deltaTime = 16;
 
-        // Translation coefficients
-        public int dx = 0;
-        public int dy = 0;
+        public Point translationCoefficients = new Point(0, 0);
+        public float[] scalingCoefficients = {1,1};
 
         public Bitmap currentFrame;
         public Graphics graphics;
@@ -44,12 +43,10 @@ namespace SimpleDrawProject
         private bool isPaused = false;
         private bool quitted = false;
 
-        private int originalWidth;
-        private int originalHeight;
-
-        public double zoomFactor = 1;
+        public float rotationAngle = 0.0F;
 
         public bool resetAfterLoop = true;
+        public bool mousePosUseRealPosition = false;
 
         public Font textFont = new Font("Times New Roman", 12.0f);
 
@@ -69,15 +66,22 @@ namespace SimpleDrawProject
         public DRAW_MODE tempCircleMode;
         public Font tempTextFont;
 
+        public float tempRotationAngle = 0.0F;
+        public float[] tempScalingCoefficients = { 1, 1 };
+        public Point tempTranslationCoefficients = new Point(0, 0);
+
+
         public int tempStrokeWeight = 1;
 
         public void rectMode(DRAW_MODE r)
         {
+            // Changes rect mode
             currentRectMode = r;
         }
 
         public void circleMode(DRAW_MODE c)
         {
+            // Change circle mode
             currentCircleMode = c;
         }
 
@@ -152,9 +156,11 @@ namespace SimpleDrawProject
 
             currentCircleMode = DRAW_MODE.CENTER;
             currentRectMode = DRAW_MODE.TOP_LEFT;
-            
-            dx = 0;
-            dy = 0;
+
+            translationCoefficients = new Point(0, 0);
+            rotationAngle = 0;
+            scalingCoefficients[0] = 1;
+            scalingCoefficients[1] = 1;
 
             currentStrokeColor = Color.Black;
             currentFillColor = Color.Black;
@@ -181,14 +187,77 @@ namespace SimpleDrawProject
             tempRectMode = DRAW_MODE.TOP_LEFT;
             tempCircleMode = DRAW_MODE.CENTER;
             tempTextFont = textFont;
+
+            tempRotationAngle = 0;
+            tempScalingCoefficients[0] = 1;
+            tempScalingCoefficients[1] = 1;
+            tempTranslationCoefficients = new Point(0, 0);
+
         }
 
-        public void zoom(double zoomFactorCurrent)
+        public void resetTransformations()
         {
-            width = (int)Math.Floor(originalWidth * zoomFactorCurrent);
-            height = (int)Math.Floor(originalHeight * zoomFactorCurrent);
+            // Resets all matrix transformations in current state
+            if (!isTempState)
+            {
+                translationCoefficients = new Point(0, 0);
+                rotationAngle = 0;
+                scalingCoefficients[0] = 1;
+                scalingCoefficients[1] = 1;
+            }
+            else
+            {
+                tempTranslationCoefficients = new Point(0, 0);
+                tempRotationAngle = 0;
+                tempScalingCoefficients[0] = 1;
+                tempScalingCoefficients[1] = 1;
+            }
 
-            zoomFactor = zoomFactorCurrent;
+            graphics.ResetTransform();
+        }
+
+        public void scale(float scaleX, float scaleY)
+        {
+            // Sets the scaling of the screen to a desired size
+            if (!isTempState)
+            {
+                graphics.ScaleTransform(1 / scalingCoefficients[0], 1 / scalingCoefficients[1]);
+                scalingCoefficients[0] = scaleX;
+                scalingCoefficients[1] = scaleY;
+            }
+            else
+            {
+                graphics.ScaleTransform(1 / tempScalingCoefficients[0], 1 / tempScalingCoefficients[1]);
+                tempScalingCoefficients[0] = scaleX;
+                tempScalingCoefficients[1] = scaleY;
+            }
+            graphics.ScaleTransform(scaleX, scaleY);
+
+        }
+
+        public void cumulativeScale(float scaleX, float scaleY)
+        {
+            // Scales the screen relative to the previous size
+            if (!isTempState)
+            {
+                scale(scalingCoefficients[0] * scaleX, scalingCoefficients[1] * scaleY);
+            }
+            else
+            {
+                scale(tempScalingCoefficients[0] * scaleX, tempScalingCoefficients[1] * scaleY);
+            }
+        }
+
+        public void zoom(float zoomFactorCurrent)
+        {
+            // Sets scale for both axis to a desired value
+            scale(zoomFactorCurrent, zoomFactorCurrent);
+        }
+
+        public void cumulativeZoom(float zoomFactor)
+        {
+            // Multiplies the scale for both axis by a given value
+            cumulativeScale(zoomFactor, zoomFactor);
         }
 
         public void point(int x, int y)
@@ -203,7 +272,7 @@ namespace SimpleDrawProject
             {
                 st = tempStrokePen;
             }
-            graphics.DrawEllipse(st, x - dx, y - dy, 1, 1);
+            graphics.DrawEllipse(st, x, y, 1, 1);
         }
 
         public void text(string s, int x, int y)
@@ -221,6 +290,7 @@ namespace SimpleDrawProject
                 usedFont = textFont;
             }
 
+            // Offsets change based on drawMode
             int kx = 0;
             int ky = 0;
             SizeF stringSize = graphics.MeasureString(s, usedFont);
@@ -232,11 +302,12 @@ namespace SimpleDrawProject
             {
                 b = fillBrush;
             }
-            else {
-                b = tempFillBrush;  
+            else
+            {
+                b = tempFillBrush;
             }
 
-            graphics.DrawString(s, textFont, b, new Point(x - dx + kx, y - dy + ky));
+            graphics.DrawString(s, textFont, b, new Point(x + kx, y + ky));
         }
 
         public void clear()
@@ -277,7 +348,7 @@ namespace SimpleDrawProject
             {
                 backgroundColor = c;
             }
-            
+
             clear();
             GC.Collect();
         }
@@ -310,6 +381,32 @@ namespace SimpleDrawProject
             textFont = new Font(name, size);
         }
 
+        public void rotate(float angle)
+        {
+            // Sets the rotation to a given angle
+            if (!isTempState)
+            {
+                graphics.RotateTransform(-rotationAngle);
+                graphics.RotateTransform(angle);
+                rotationAngle = angle;
+            }
+            else
+            {
+                graphics.RotateTransform(-tempRotationAngle);
+                graphics.RotateTransform(angle);
+                tempRotationAngle = angle;
+            }
+        }
+
+        public void cumulativeRotate(float angle)
+        {
+            // Adds the given angle to previously added angles and rotates by their total
+            if (!isTempState)
+                rotate(rotationAngle + angle);
+            else
+                rotate(tempRotationAngle + angle);
+        }
+
         public void noFill()
         {
             // Sets the fill state to false
@@ -320,8 +417,32 @@ namespace SimpleDrawProject
         public void translate(int x, int y)
         {
             // Changes the origin point of the coordinate system
-            dx = x;
-            dy = y;
+            if (!isTempState)
+            {
+                graphics.TranslateTransform(-translationCoefficients.X, -translationCoefficients.Y);
+                translationCoefficients = new Point(x, y);
+            }
+            else
+            {
+                graphics.TranslateTransform(-tempTranslationCoefficients.X, -tempTranslationCoefficients.Y);
+                tempTranslationCoefficients = new Point(x, y);
+            }
+
+            graphics.TranslateTransform(x, y);
+        }
+
+        public void cumulativeTranslate(int x, int y)
+        {
+            // Adds to the origin point of the coordinate system
+            if (!isTempState)
+            {
+                translate(translationCoefficients.X + x, translationCoefficients.Y + y);
+            }
+            else
+            {
+                translate(tempTranslationCoefficients.X + x, tempTranslationCoefficients.Y + y);
+            }
+
         }
 
         public void strokeWeight(int s)
@@ -378,42 +499,32 @@ namespace SimpleDrawProject
         public void circle(int x, int y, int r)
         {
             // Draws a circle at position (x,y) with radius r
-            Pen p;
-            SolidBrush sb;
-            getPenAndBrush(out p, out sb);
-            int kx = 0;
-            int ky = 0;
-            getCircleOffset(out kx, out ky, 2 * r, 2 * r);
+            getPenAndBrush(out Pen p, out SolidBrush sb);
+            getCircleOffset(out int kx, out int ky, 2 * r, 2 * r);
 
             if (fillState)
             {
-                graphics.FillEllipse(sb, x - dx + kx, y - dy + ky, 2 * r, 2 * r);
+                graphics.FillEllipse(sb, x + kx, y + ky, 2 * r, 2 * r);
             }
             if (strokeState)
             {
-                graphics.DrawEllipse(p, x - dx + kx, y - dy + ky, 2 * r, 2 * r);
+                graphics.DrawEllipse(p, x + kx, y + ky, 2 * r, 2 * r);
             }
         }
 
         public void ellipse(int x, int y, int w, int h)
         {
             // Draws an ellipse at (x,y) delimited by a rect with sides (w,h)
-            Pen p;
-            SolidBrush sb;
-
-            int kx = 0;
-            int ky = 0;
-            getCircleOffset(out kx, out ky, w, h);
-
-            getPenAndBrush(out p, out sb);
+            getPenAndBrush(out Pen p, out SolidBrush sb);
+            getCircleOffset(out int kx, out int ky, w, h);
 
             if (fillState)
             {
-                graphics.FillEllipse(sb, x - dx + kx, y - dy + ky, w, h);
+                graphics.FillEllipse(sb, x + kx, y + ky, w, h);
             }
             if (strokeState)
             {
-                graphics.DrawEllipse(p, x - dx + kx, y - dy + ky, w, h);
+                graphics.DrawEllipse(p, x + kx, y + ky, w, h);
             }
         }
 
@@ -431,59 +542,48 @@ namespace SimpleDrawProject
             }
 
             if (strokeState)
-                graphics.DrawLine(p, x1-dx, y1-dy, x2-dx, y2-dy);
+                graphics.DrawLine(p, x1, y1, x2, y2);
         }
 
         public void rect(int x, int y, int w, int h)
         {
             // Draws a rectangle at the position (x,y) with sides (w,h)
-            Pen p;
-            SolidBrush sb;
-            getPenAndBrush(out p, out sb);
-
-            int kx = 0;
-            int ky = 0;
-            getRectOffset(out kx, out ky, w, h);
+            getPenAndBrush(out Pen p, out SolidBrush sb);
+            getRectOffset(out int kx, out int ky, w, h);
 
             if (fillState)
             {
-                graphics.FillRectangle(sb, x-dx+kx, y-dy+ky, w, h);
+                graphics.FillRectangle(sb, x + kx, y + ky, w, h);
             }
             if (strokeState)
             {
-                graphics.DrawRectangle(p, x-dx+kx, y-dy+ky, w, h);
+                graphics.DrawRectangle(p, x + kx, y + ky, w, h);
             }
         }
 
         public void square(int x, int y, int s)
         {
             // Draws a square at position (x,y) with sides s
-            Pen p;
-            SolidBrush sb;
-            getPenAndBrush(out p, out sb);
+            getPenAndBrush(out Pen p, out SolidBrush sb);
 
-            int kx = 0;
-            int ky = 0;
-            getRectOffset(out kx, out ky, s, s);
+            getRectOffset(out int kx, out int ky, s, s);
 
             if (fillState)
             {
-                graphics.FillRectangle(sb, x-dx+kx, y-dy+ky, s, s);
+                graphics.FillRectangle(sb, x + kx, y + ky, s, s);
             }
             if (strokeState)
             {
-                graphics.DrawRectangle(p, x-dx+kx, y-dy+ky, s, s);
+                graphics.DrawRectangle(p, x + kx, y + ky, s, s);
             }
         }
 
         public void triangle(int x1, int y1, int x2, int y2, int x3, int y3)
         {
             // Draws a triangle from three vertices (x1,y1),(x2,y2) and (x3,y3)
-            Pen p;
-            SolidBrush sb;
-            getPenAndBrush(out p, out sb);
+            getPenAndBrush(out Pen p, out SolidBrush sb);
 
-            Point[] matrix = { new Point(x1-dx, y1-dy), new Point(x2-dx, y2-dy), new Point(x3-dx, y3-dy) };
+            Point[] matrix = { new Point(x1, y1), new Point(x2, y2), new Point(x3, y3) };
             if (fillState)
             {
                 graphics.FillPolygon(sb, matrix);
@@ -497,15 +597,7 @@ namespace SimpleDrawProject
         public void polygon(Point[] points)
         {
             // Draws a polygon from a points matrix
-            Pen p;
-            SolidBrush sb;
-            getPenAndBrush(out p, out sb);
-
-            for (int i = 0; i < points.Length; i++)
-            {
-                points[i].X -= dx;
-                points[i].Y -= dy;
-            }
+            getPenAndBrush(out Pen p, out SolidBrush sb);
 
             if (fillState)
             {
@@ -520,22 +612,17 @@ namespace SimpleDrawProject
         public void image(Image img, int x, int y)
         {
             // Draws an image to the screen at position x,y
-            int kx = 0;
-            int ky = 0;
-            getRectOffset(out kx, out ky, img.Width, img.Height);
-            
-            graphics.DrawImage(img, new Point(x+kx-dx,y+ky-dy));
+            getRectOffset(out int kx, out int ky, img.Width, img.Height);
+
+            graphics.DrawImage(img, new Point(x + kx, y + ky));
         }
-        
+
         public void image(Image img, int x, int y, int w, int h)
         {
             // Draws an image to the screen at position x,y with sizes w,h
+            getRectOffset(out int kx, out int ky, w, h);
 
-            int kx = 0;
-            int ky = 0;
-            getRectOffset(out kx, out ky, w, h);
-
-            graphics.DrawImage(img, new Rectangle(x+kx-dx, y+ky-dy, w, h));
+            graphics.DrawImage(img, new Rectangle(x + kx, y + ky, w, h));
         }
 
         public void toggleAntiAlias()
@@ -557,41 +644,51 @@ namespace SimpleDrawProject
             tempCircleMode = currentCircleMode;
             tempRectMode = currentRectMode;
             tempTextFont = textFont;
+
+            tempRotationAngle = rotationAngle;
+            tempScalingCoefficients = scalingCoefficients;
+            tempTranslationCoefficients = translationCoefficients;
         }
 
         public void pop()
         {
             // Leaves temp state and reverts back color changes made while it was on
             isTempState = false;
+            cumulativeTranslate(-tempTranslationCoefficients.X, -tempTranslationCoefficients.Y);
+            rotate(rotationAngle);
+            scale(scalingCoefficients[0], scalingCoefficients[1]);
         }
 
         public void pause()
         {
+            // Pauses the simulation
             isPaused = true;
         }
 
         public void unpause()
         {
+            // Resumes the simulation
             isPaused = false;
         }
 
         public void quit()
         {
+            // Quits the simulation
             quitted = true;
         }
-
         public Point mousePos(Form f)
         {
             // Gets mouse position in the screen
+            // NOTE: Rotation still skews the mouse position, could not get over this yet
 
             Point absolutePos = System.Windows.Forms.Cursor.Position;
             Point relativeForm = f.PointToClient(absolutePos);
+
             relativeForm.X -= canvas.Location.X;
             relativeForm.Y -= canvas.Location.Y;
-            relativeForm.X += dx;
-            relativeForm.Y += dy;
-            relativeForm.X = (int)(relativeForm.X * zoomFactor);
-            relativeForm.Y = (int)(relativeForm.Y * zoomFactor);
+
+            relativeForm.X = (int)(relativeForm.X * (1/scalingCoefficients[0]));
+            relativeForm.Y = (int)(relativeForm.Y * (1/scalingCoefficients[1]));
 
             return relativeForm;
         }
@@ -600,13 +697,14 @@ namespace SimpleDrawProject
 
         private void TimerTick(object sender, EventArgs e)
         {
+            // Behind the scenes of draw()
             if (isPaused)
             {
                 return;
             }
             currentFrame = new Bitmap(width, height);
             graphics = Graphics.FromImage(currentFrame);
-            
+
             if (antiAlias)
             {
                 graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
@@ -617,10 +715,10 @@ namespace SimpleDrawProject
             }
 
             frameCount++;
- 
+
             drawAct();
             canvas.Image = (Image)currentFrame;
-            
+
             GC.Collect();
             if (resetAfterLoop)
             {
@@ -637,7 +735,6 @@ namespace SimpleDrawProject
 
         void protoDraw(Action draw)
         {
-            
             drawAct = draw;
             drawEvent.Tick += new EventHandler(TimerTick);
             drawEvent.Interval = deltaTime;
@@ -646,9 +743,7 @@ namespace SimpleDrawProject
 
         void protoSetup(Action setup)
         {
-            originalHeight = height;
             canvas.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            originalWidth = width;
             setup();
         }
 
